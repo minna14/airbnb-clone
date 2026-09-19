@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/*
+  NOTE for pixel-matching pass:
+  Airbnb's real site uses a proprietary font ("Circular"). This starter uses
+  the OS system-UI font stack as a free, zero-network stand-in. On your own
+  machine (with normal internet) you can swap this for a closer-looking free
+  Google Font — e.g. next/font/google Inter or "Plus Jakarta Sans" — for a
+  better shape match. Never download/embed Airbnb's actual font files.
+*/
+
+:root {
+  --background: #ffffff;
+  --foreground: #222222;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Respect reduced motion globally as a safety net; components also check the
+   hook explicitly for anything more than a simple transition. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
