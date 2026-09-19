@@ -9,6 +9,10 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+type DateKey = string; // "YYYY-MM-DD"
+const toKey = (year: number, month: number, day: number): DateKey =>
+  `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
 function getMonthGrid(year: number, month: number) {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -17,7 +21,19 @@ function getMonthGrid(year: number, month: number) {
   return cells;
 }
 
-function MonthGrid({ year, month }: { year: number; month: number }) {
+function MonthGrid({
+  year,
+  month,
+  checkIn,
+  checkOut,
+  onSelect,
+}: {
+  year: number;
+  month: number;
+  checkIn: DateKey | null;
+  checkOut: DateKey | null;
+  onSelect: (key: DateKey) => void;
+}) {
   const cells = getMonthGrid(year, month);
   return (
     <div className="flex-1">
@@ -30,19 +46,29 @@ function MonthGrid({ year, month }: { year: number; month: number }) {
         ))}
       </div>
       <div className="mt-1 grid grid-cols-7 gap-y-1 text-center text-sm">
-        {cells.map((day, i) =>
-          day ? (
+        {cells.map((day, i) => {
+          if (!day) return <span key={i} />;
+          const key = toKey(year, month, day);
+          const isEndpoint = key === checkIn || key === checkOut;
+          const inRange = checkIn && checkOut && key > checkIn && key < checkOut;
+          return (
             <button
               key={i}
-              className="mx-auto flex h-9 w-9 items-center justify-center rounded-full hover:border hover:border-[#222222] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
-              aria-label={`${MONTH_NAMES[month]} ${day}, ${year}`}
+              onClick={() => onSelect(key)}
+              aria-pressed={isEndpoint}
+              className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222] ${
+                isEndpoint
+                  ? "bg-[#222222] text-white"
+                  : inRange
+                  ? "bg-neutral-100"
+                  : "hover:border hover:border-[#222222]"
+              }`}
+              aria-label={`${MONTH_NAMES[month]} ${day}, ${year}${isEndpoint ? ", selected" : ""}`}
             >
               {day}
             </button>
-          ) : (
-            <span key={i} />
-          )
-        )}
+          );
+        })}
       </div>
     </div>
   );
@@ -51,11 +77,27 @@ function MonthGrid({ year, month }: { year: number; month: number }) {
 export function AvailabilityCalendar({ nights, location }: { nights: number; location: string }) {
   const now = new Date();
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const [checkIn, setCheckIn] = useState<DateKey | null>(null);
+  const [checkOut, setCheckOut] = useState<DateKey | null>(null);
 
   const goPrev = () =>
     setCursor((c) => (c.month === 0 ? { year: c.year - 1, month: 11 } : { year: c.year, month: c.month - 1 }));
   const goNext = () =>
     setCursor((c) => (c.month === 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: c.month + 1 }));
+
+  const handleSelect = (key: DateKey) => {
+    if (!checkIn || (checkIn && checkOut)) {
+      // Start a fresh selection
+      setCheckIn(key);
+      setCheckOut(null);
+    } else if (key > checkIn) {
+      setCheckOut(key);
+    } else {
+      // Picked an earlier date than check-in — restart from here
+      setCheckIn(key);
+      setCheckOut(null);
+    }
+  };
 
   const secondMonth = cursor.month === 11 ? 0 : cursor.month + 1;
   const secondYear = cursor.month === 11 ? cursor.year + 1 : cursor.year;
@@ -65,6 +107,13 @@ export function AvailabilityCalendar({ nights, location }: { nights: number; loc
       <h2 id="calendar-heading" className="text-xl font-semibold">
         {nights} nights in {location.split(",")[0]}
       </h2>
+      <p className="mt-1 text-sm text-neutral-600" aria-live="polite">
+        {checkIn && checkOut
+          ? `Selected: ${checkIn} to ${checkOut}`
+          : checkIn
+          ? `Check-in ${checkIn} — now pick a checkout date`
+          : "Select a check-in date"}
+      </p>
 
       <div className="relative mt-6">
         <button
@@ -83,9 +132,21 @@ export function AvailabilityCalendar({ nights, location }: { nights: number; loc
         </button>
 
         <div className="flex gap-16 px-14">
-          <MonthGrid year={cursor.year} month={cursor.month} />
-          <MonthGrid year={secondYear} month={secondMonth} />
+          <MonthGrid year={cursor.year} month={cursor.month} checkIn={checkIn} checkOut={checkOut} onSelect={handleSelect} />
+          <MonthGrid year={secondYear} month={secondMonth} checkIn={checkIn} checkOut={checkOut} onSelect={handleSelect} />
         </div>
+
+        {(checkIn || checkOut) && (
+          <button
+            onClick={() => {
+              setCheckIn(null);
+              setCheckOut(null);
+            }}
+            className="mx-auto mt-6 block text-sm font-medium underline underline-offset-2"
+          >
+            Clear dates
+          </button>
+        )}
       </div>
     </section>
   );
