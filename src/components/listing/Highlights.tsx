@@ -1,7 +1,7 @@
-import { Sparkles, Wind, DoorOpen, LucideIcon } from "lucide-react";
+import { Sparkles, Wind, DoorOpen, Umbrella, LucideIcon } from "lucide-react";
 import { ListingData } from "@/data/listing";
 
-const ICONS: Record<string, LucideIcon> = { Sparkles, Wind, DoorOpen };
+const ICONS: Record<string, LucideIcon> = { Sparkles, Wind, DoorOpen, Umbrella };
 
 export function Highlights({ highlights }: { highlights: ListingData["highlights"] }) {
   return (

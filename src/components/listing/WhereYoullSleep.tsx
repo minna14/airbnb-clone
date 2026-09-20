@@ -14,6 +14,7 @@ export function WhereYoullSleep({ sleepAreas }: { sleepAreas: SleepArea[] }) {
               <Image src={area.photoUrl} alt="" fill sizes="360px" className="object-cover" />
             </div>
             <figcaption className="mt-2 text-[15px] font-medium">{area.label}</figcaption>
+            <p className="text-sm text-neutral-500">{area.subtitle}</p>
           </figure>
         ))}
       </div>

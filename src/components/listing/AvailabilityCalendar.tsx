@@ -102,10 +102,15 @@ export function AvailabilityCalendar({ nights, location }: { nights: number; loc
   const secondMonth = cursor.month === 11 ? 0 : cursor.month + 1;
   const secondYear = cursor.month === 11 ? cursor.year + 1 : cursor.year;
 
+  const computedNights =
+    checkIn && checkOut
+      ? Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))
+      : nights;
+
   return (
     <section className="border-t border-neutral-200 py-8" aria-labelledby="calendar-heading">
       <h2 id="calendar-heading" className="text-xl font-semibold">
-        {nights} nights in {location.split(",")[0]}
+        {computedNights} night{computedNights !== 1 ? "s" : ""} in {location.split(",")[0]}
       </h2>
       <p className="mt-1 text-sm text-neutral-600" aria-live="polite">
         {checkIn && checkOut
